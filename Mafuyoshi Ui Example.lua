@@ -1,7 +1,7 @@
 -- Example usage of the Mafuyoshi UI Library
 
 -- Load the library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/MafuyoshiLib/main/source.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/fluxScript82/Mafuyoshi-Ui-Library/refs/heads/main/Mafuyoshi%20Ui%20Source.lua"))()
 
 -- Create a window
 local Window = Library:CreateWindow("Mafuyoshi Script", "Midnight")
