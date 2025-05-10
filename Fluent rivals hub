@@ -1,0 +1,160 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fluent " .. Fluent.Version,
+    SubTitle = "by dawid",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+-- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+do
+    Fluent:Notify({
+        Title = "Notification",
+        Content = "This is a notification",
+        SubContent = "SubContent", -- Optional
+        Duration = 5 -- Set to nil to make the notification not disappear
+    })
+
+    Tabs.Main:AddParagraph({
+        Title = "Paragraph",
+        Content = "This is a paragraph.\nSecond line!"
+    })
+
+    Tabs.Main:AddButton({
+        Title = "Button",
+        Description = "Very important button",
+        Callback = function()
+            Window:Dialog({
+                Title = "Title",
+                Content = "This is a dialog",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            print("Confirmed the dialog.")
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+    local Toggle = Tabs.Main:AddToggle("MyToggle", { Title = "Toggle", Default = false })
+
+    Toggle:OnChanged(function()
+        print("Toggle changed:", Options.MyToggle.Value)
+    end)
+
+    Options.MyToggle:SetValue(false)
+
+    -- Add a toggle for the aimbot
+    local AimbotToggle = Tabs.Main:AddToggle("AimbotToggle", { Title = "Enable Aimbot", Default = false })
+
+    AimbotToggle:OnChanged(function()
+        if Options.AimbotToggle.Value then
+            print("Aimbot Enabled")
+            EnableAimbot()
+        else
+            print("Aimbot Disabled")
+            DisableAimbot()
+        end
+    end)
+
+    -- Add a toggle for ESP
+    local ESPToggle = Tabs.Main:AddToggle("ESPToggle", { Title = "Enable ESP (Wall Hack)", Default = false })
+
+    ESPToggle:OnChanged(function()
+        if Options.ESPToggle.Value then
+            print("ESP Enabled")
+            EnableESP()
+        else
+            print("ESP Disabled")
+            DisableESP()
+        end
+    end)
+
+    -- Function to enable aimbot
+    function EnableAimbot()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if Options.AimbotToggle.Value then
+                local closestEnemy = FindClosestEnemy()
+                if closestEnemy then
+                    AimAt(closestEnemy)
+                end
+            end
+        end)
+    end
+
+    -- Function to disable aimbot
+    function DisableAimbot()
+        -- Placeholder: Disconnect any aimbot-related connections
+    end
+
+    -- Function to enable ESP
+    function EnableESP()
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local highlight = Instance.new("BoxHandleAdornment")
+                highlight.Name = "PlayerESP"
+                highlight.Adornee = player.Character.HumanoidRootPart
+                highlight.AlwaysOnTop = true
+                highlight.ZIndex = 0
+                highlight.Size = Vector3.new(4, 6, 4)
+                highlight.Color3 = Color3.fromRGB(255, 0, 0) -- Highlight color (red)
+                highlight.Transparency = 0.5
+                highlight.Parent = player.Character.HumanoidRootPart
+            end
+        end
+    end
+
+    -- Function to disable ESP
+    function DisableESP()
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if player.Character.HumanoidRootPart:FindFirstChild("PlayerESP") then
+                    player.Character.HumanoidRootPart.PlayerESP:Destroy()
+                end
+            end
+        end
+    end
+
+    -- Utility function to find the closest enemy
+    function FindClosestEnemy()
+        local closestEnemy = nil
+        local shortestDistance = math.huge
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (player.Character.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if distance < shortestDistance then
+                    closestEnemy = player.Character
+                    shortestDistance = distance
+                end
+            end
+        end
+        return closestEnemy
+    end
+
+    -- Utility function to aim at a specific target
+    function AimAt(target)
+        game.Workspace.CurrentCamera.CFrame = CFrame.new(game.Workspace.CurrentCamera.CFrame.Position, target.HumanoidRootPart.Position)
+    end
+end
